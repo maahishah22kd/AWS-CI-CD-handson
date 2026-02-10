@@ -1,40 +1,29 @@
 version: 0.2
 
-env:
-  variables:
-    # optional: you can set debug=true to print extra info in build logs
-    DEBUG_BUILD: "false"
-
 phases:
   install:
     runtime-versions:
       java: corretto21
+
   pre_build:
     commands:
-      - echo "Build started on `date`"
-      - echo "Workspace: $CODEBUILD_SRC_DIR"
-      - ls -la .
-      - if [ -f ./mvnw ]; then ./mvnw -v || true; else mvn -v || true; fi
+      - echo "Build started on $(date)"
+      - echo "Listing repo root"
+      - ls -la
+      - echo "Going into aws/ (where pom.xml is)"
+      - cd aws
+      - ls -la
+      - mvn -v
+
   build:
     commands:
-      - |
-        # find the pom.xml location (project root or first subdir with pom.xml)
-        if [ -f pom.xml ]; then
-          PROJECT_DIR="."
-        else
-          PROJECT_DIR=$(find . -maxdepth 2 -type f -name pom.xml -printf '%h\n' | head -n 1)
-          if [ -z "$PROJECT_DIR" ]; then
-            echo "ERROR: pom.xml not found in repo root or first-level subfolders"
-            exit 1
-          fi
-        fi
-      - echo "Building project in: $PROJECT_DIR"
-      - ls -la "$PROJECT_DIR"
-      - cd "$PROJECT_DIR"
-      - if [ -f ./mvnw ]; then ./mvnw -DskipTests clean package; else mvn -DskipTests clean package; fi
-      - ls -la target
-      - cp target/*.jar "$CODEBUILD_SRC_DIR"/app.jar
-      - ls -la "$CODEBUILD_SRC_DIR"
+      - mvn clean package -DskipTests
+      - echo "Listing target folder"
+      - ls -lah target
+      - cp target/*.jar ../app.jar
+      - cd ..
+      - ls -lah
+
 artifacts:
   files:
     - Procfile
