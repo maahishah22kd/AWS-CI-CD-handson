@@ -7,10 +7,12 @@ phases:
 
   build:
     commands:
-      - cd aws
       - mvn -v
       - mvn clean package -DskipTests
+      - ls -lh target
+      - cp target/*.jar app.jar
 
 artifacts:
   files:
-    - aws/target/*.jar
+    - Procfile
+    - app.jar
